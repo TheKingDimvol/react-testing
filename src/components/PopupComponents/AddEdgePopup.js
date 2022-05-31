@@ -1,13 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Modal, Button, Form, Alert } from 'react-bootstrap'
 import { useAuth } from '../../contexts/AuthContext'
 import { usePopup } from '../../contexts/PopupsContext'
 
-export default function DeleteNodePopup(props) {
-    const nameRef = useRef('')
-    const nodeRef = useRef('')
+export default function AddEdgePopup(props) {
+    const nameRef = useRef()
+    const typeRef = useRef()
     const [error, setError] = useState('')
-    const [select, setSelect] = useState([])
     const [loading, setLoading] = useState(false)
     const { currentUser } = useAuth()
     const { graphData } = usePopup()
@@ -21,18 +20,33 @@ export default function DeleteNodePopup(props) {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
+        let chosenType
+        graphData.graph.types.map((type) => {
+            if (type.label === typeRef.current.value) {
+                chosenType = type
+            }
+            return type
+        })
+
         try {
-            const deleteNode = async () => {
-                const response = await fetch(`/graph/nodes/${nodeRef.current.value}?desk_uuid=${graphData.graph.desk.uuid}`, {
-                    method: 'DELETE',
+            const createNode = async () => {
+                const response = await fetch(`/graph/nodes`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        title: nameRef.current.value,
+                        desk_uuid: graphData.graph.desk.uuid,
+                        type_uuid: chosenType.uuid,
+                        params: {
+                            community: chosenType.community
+                        }
+                    }),
                     headers: {
                         Accept: 'application/json',
                         'Content-type': 'application/json',
                         'token': currentUser.access_token
-                    }
+                    },
                 })
                 const data = await response.json()
-
                 if (!response.ok) {
                     setError(data && data.detail)
                     return setLoading(false)
@@ -41,30 +55,20 @@ export default function DeleteNodePopup(props) {
                 setLoading(false)
             }
             setLoading(true)
-            deleteNode()
+            createNode()
         } catch(error) {
-            setError(error && error.detail)
+            console.log(error)
+            setError(error.detail)
             setLoading(false)
         }
     }
 
     const fillSelect = () => {
-        const selector = () => {
-            if (loading) return <option key={0}>Загрузка вершин...</option>
-            if (graphData.graph === undefined || graphData.graph.nodes === undefined) return <option key={0}>Загрузка вершин...</option>
-            let nodes = [...graphData.graph.nodes]
-            if (nameRef.current.value) {
-                nodes = nodes.filter((node) => node.label.includes(nameRef.current.value))
-            }
-            if (nodes.length === 0) {
-                return <option id="-2" selected={true} disabled={true}>Нет подходящих вершин</option>
-            }
-            return nodes.map((node) => <option value={node.uuid} key={node.id} id={node.id}>{node.label}</option>)
+        if (loading || graphData.graph === undefined || graphData.graph.typeEdges === undefined) {
+            return <option key={0}>Загрузка типов...</option>
         }
-        setSelect(selector())
+        return graphData.graph.typeEdges.map((edge) => <option key={type.uuid} id={type.uuid}>{type.type}</option>)
     }
-
-    useState(() => fillSelect(), [])
 
     return (
         <Modal
@@ -76,24 +80,28 @@ export default function DeleteNodePopup(props) {
             >
             <Modal.Header>
                 <Modal.Title id="contained-modal-title-vcenter">
-                    Удалить вершину
+                    Связать вершины
                 </Modal.Title>
                 {error && <Alert variant="danger">{error}</Alert>}
             </Modal.Header>
             <Modal.Body>
                 <Form onSubmit={handleSubmit}>
-                    <Form.Group className="mb-2">
-                        <Form.Label>Название</Form.Label>
-                        <Form.Control type="text" ref={nameRef} onChange={fillSelect}/>
+                    <Form.Group className="mb-2" id="username">
+                        <Form.Label>Первая вершина</Form.Label>
+                        <Form.Control type="username" ref={startNode} required />
                     </Form.Group>
                     <Form.Group>
-                        <Form.Label>Вершина</Form.Label>
-                        <Form.Control as="select" ref={nodeRef} required>
-                            {select}
+                        <Form.Label>Тип</Form.Label>
+                        <Form.Control as="select" ref={typeRef} required>
+                            {fillSelect()}
                         </Form.Control>
                     </Form.Group>
+                    <Form.Group className="mb-2" id="username">
+                        <Form.Label>Вторая вершина</Form.Label>
+                        <Form.Control type="username" ref={endNode} required />
+                    </Form.Group>
                     <div className="d-flex justify-content-end">
-                        <Button className="mt-4" type="submit" disabled={loading}>Удалить</Button>
+                        <Button className="mt-4" type="submit" disabled={loading}>Создать</Button>
                     </div>
                 </Form>
             </Modal.Body>

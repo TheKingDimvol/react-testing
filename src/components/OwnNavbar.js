@@ -17,6 +17,7 @@ export default function OwnNavbar() {
         backgroundColor: '#0d6efd', 
         padding: '5px', 
         marginTop: '10px', 
+        marginLeft: '50px', 
         borderRadius: '10px'
     }
     return (
@@ -28,8 +29,11 @@ export default function OwnNavbar() {
             </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav" style={style}>
-                <Nav className="mr-auto w-75">
+                <Nav className="mr-auto">
                     <Nav.Link href="/desks">Доски</Nav.Link>
+                </Nav>
+                <Nav className="mr-auto w-75">
+                    <Nav.Link href="/typologies">Типологии</Nav.Link>
                 </Nav>
                 <Nav className="mr-auto w-25 justify-content-center">
                     <Button variant="light" onClick={isEmpty(currentUser) ? login : logout}>

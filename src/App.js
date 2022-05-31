@@ -7,6 +7,7 @@ import Desk from './components/Desk'
 import Typology from './components/Typology'
 import { AuthProvider } from './contexts/AuthContext';
 import OwnNavbar from './components/OwnNavbar';
+import Typologies from './components/Typologies';
 
 
 function App() {
@@ -18,8 +19,9 @@ function App() {
               <Switch>
                 <Route exact path='/' component={Home} />
                 <Route exact path='/desks' component={Desks} />
-                <Route path='/typologies/:id' component={Typology} />
-                <Route path='/desks/:id' component={Desk} />
+                <Route exact path='/typologies' component={Typologies} />
+                <Route path='/typologies/:uuid' component={Typology} />
+                <Route path='/desks/:uuid' component={Desk} />
                 <Route path='/login' component={Login} />
                 <Route path='/signup' component={Signup} />
               </Switch>

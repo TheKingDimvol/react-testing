@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true)
 
     const signup = async (username, email, password) => {
-        const response = await fetch("http://localhost:5000/api/user/signup", {
+        const response = await fetch("/auth/signup", {
             method: 'POST',
             headers: {
                 'Content-type': 'application/json'
@@ -25,12 +25,12 @@ export function AuthProvider({ children }) {
         const data = await response.json()
 
         if (!response.ok) {
-            return { error: data.error }
+            return { error: data.detail }
         }
     }
 
     const login = async (username, password) => {
-        const response = await fetch("http://localhost:5000/api/auth/login", {
+        const response = await fetch("/auth/login", {
             method: 'POST',
             headers: {
                 'Content-type': 'application/json'
@@ -41,9 +41,8 @@ export function AuthProvider({ children }) {
             })
         })
         const data = await response.json()
-
         if (!response.ok) {
-            return { error: data.error }
+            return { error: data.detail }
         }
 
         setCurrentUser(data)

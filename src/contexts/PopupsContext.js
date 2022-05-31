@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react'
 import AddNodePopup from '../components/PopupComponents/AddNodePopup'
+import DeleteNodePopup from '../components/PopupComponents/DeleteNodePopup'
 
 const PopupContext = React.createContext()
 
@@ -18,16 +19,17 @@ export function PopupsProvider({ children, graphData }) {
     }
 
     const getDesksTypePopup = () => {
-        if (graphData.type === 'Типология') {
-            return (
-                <div></div>
-            )
-        }
         return (
-            <AddNodePopup 
-                show={addNodeShow}
-                onHide={() => setAddNodeShow(false)} 
-            />
+            <div>
+                <AddNodePopup 
+                    show={addNodeShow}
+                    onHide={() => setAddNodeShow(false)} 
+                />
+                <DeleteNodePopup 
+                    show={deleteNodeShow}
+                    onHide={() => setDeleteNodeShow(false)} 
+                />
+            </div>
         )
     }
 

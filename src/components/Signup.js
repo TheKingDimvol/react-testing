@@ -2,8 +2,10 @@ import React, { useRef, useState } from 'react'
 import { Button, Card, Container, Form, Alert } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useHistory } from 'react-router-dom'
 
 export default function Signup() {
+    const history = useHistory()
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
     const emailRef = useRef()
@@ -27,8 +29,11 @@ export default function Signup() {
             if (checkSignup && checkSignup.error) {
                 setError(checkSignup.error)
             }
+            else {
+                history.push('/login')
+            }
         } catch(error) {
-            setError('Ошибка при регистрации')
+            setError(error)
         }
         setLoading(false)
     }

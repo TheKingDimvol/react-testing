@@ -24,6 +24,7 @@ export default function Registration() {
             }
             history.push("/desks")
         } catch(error) {
+            setLoading(false)
             setError('Ошибка при входе в аккаунт')
         }
     }

@@ -4,7 +4,7 @@ import { Dropdown } from 'react-bootstrap'
 import { usePopup } from '../contexts/PopupsContext';
 
 export default function SideBar({ desk }) {
-    const { setAddNodeShow } = usePopup()
+    const { setAddNodeShow, setDeleteNodeShow } = usePopup()
 
     return (
         <div className="sidenav">
@@ -19,15 +19,27 @@ export default function SideBar({ desk }) {
                 <Dropdown.Item eventKey="1" onClick={() => setAddNodeShow(true)}>
                     <h5>Добавить вершину</h5>
                 </Dropdown.Item>
+                <Dropdown.Item eventKey="1" onClick={() => false}>
+                    <h5>Изменить вершину</h5>
+                </Dropdown.Item>
+                <Dropdown.Item eventKey="1" onClick={() => setDeleteNodeShow(true)}>
+                    <h5>Удалить вершину</h5>
+                </Dropdown.Item>
             </SideBarItem>
             <SideBarItem title={' Рёбра '}>
-
+                <Dropdown.Item eventKey="1" onClick={() => false}>
+                    <h5>Связать вершины</h5>
+                </Dropdown.Item>
             </SideBarItem>
             <SideBarItem title={' Фильтры '}>
-
+                <Dropdown.Item eventKey="1" onClick={() => false}>
+                    <h5>В разработке</h5>
+                </Dropdown.Item>
             </SideBarItem>
             <SideBarItem title={' Экспорт '}>
-
+                <Dropdown.Item eventKey="1" onClick={() => false}>
+                    <h5>В разработке</h5>
+                </Dropdown.Item>
             </SideBarItem>
         </div>
     )

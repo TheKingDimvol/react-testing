@@ -2,19 +2,19 @@ import React, { useState, useEffect } from 'react'
 import { Container, Card } from 'react-bootstrap'
 import DeskItem from './DeskItem'
 
-export default function Desks() {
+export default function Typologies() {
     const [desks, setDesks] = useState([])
     const [loading, setLoading] = useState(true)
 
-    const fetchDesks = async () => {
-        const response = await fetch("/graph/desks/all")
+    const fetchTypologies = async () => {
+        const response = await fetch("/graph/typologies/all")
         const data = await response.json()
         return data
     }
 
     useEffect(() => {
         const getDesks = async () => {
-            const data = await fetchDesks()
+            const data = await fetchTypologies()
             setDesks(data)
             setLoading(false)
         }

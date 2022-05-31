@@ -56,6 +56,8 @@ export default function DesksGraph() {
 
         console.log('changed in graph');
 
+        console.log(graphData.graph)
+
         setLoading(false)
     }, [graphData.graph])
 

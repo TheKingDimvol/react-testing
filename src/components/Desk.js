@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { PopupsProvider } from '../contexts/PopupsContext'
 import DesksGraph from './DesksGraph'
@@ -9,74 +9,77 @@ import {v4 as uuid} from "uuid"
 export default function Desk({ match }) {
     const [key, setKey] = useState(uuid)
     const [graph, setGraph] = useState({})
+    const [newGraph, setNewGraph] = useState({})
     const [loading, setLoading] = useState(true)
     const [authenticated, setAuthenticated] = useState(false)
     const { currentUser, isEmpty } = useAuth()
+    const ws = useRef(null);
+    
 
-    const fetchUrl = async (url) => {
-        const response = await fetch(url)
-        const data = await response.json()
-        return data
+    const updateGraph = (data) => {
+        console.log('update graph')
+        console.log(graph)
+        let updatedGraph = graphData.graph
+        if (data.NewNodes != null) {
+            updatedGraph.nodes = [...updatedGraph.nodes, ...data.NewNodes]
+        }
+        if (data.NewEdges != null) {
+            updatedGraph.edges = [...updatedGraph.edges, ...data.NewEdges]
+        }
+        if (data.DeletedNodes != null) {
+            updatedGraph.nodes = updatedGraph.nodes.filter((node) => !data.DeletedNodes.includes(node.uuid))
+        }
+        if (data.DeletedEdges != null) {
+            updatedGraph.edges = updatedGraph.edges.filter((edge) => !data.DeletedEdges.includes(edge.uuid))
+        }
+        changeGraph(updatedGraph)
     }
 
     useEffect(() => {
-        const getGraph = async () => {
-            const fetchedNodes = await fetchUrl(`http://localhost:5000/api/nodes?desk=${match.params.id}`)
-            const newNodes = fetchedNodes.map(node => {
-                return {
-                    id: node.properties.id,
-                    label: node.properties.title,
-                    group: node.properties.community,
-                    type: node.label
+        updateGraph(newGraph)
+    }, [newGraph])
+
+    useEffect(() => {
+        ws.current = new WebSocket(`ws://localhost:8000/ws/${match.params.uuid}?user=1`);
+        ws.current.onmessage = function(event) {
+            let data = JSON.parse(event.data)
+            console.log(data)
+
+            if ('NewNodes' in data) {
+                setNewGraph(data)
+                // TODO deleted nodes
+            }
+            else {
+                let graphForVis = {
+                    desk: data.Desk,
+                    typology: data.Typology,
+                    nodes: data.Nodes,
+                    edges: data.Edges,
+                    types: data.Types,
+                    typeEdges : data.TypeEdges
                 }
-            })
-            const fetchedEdges = await fetchUrl(`http://localhost:5000/api/edges?desk=${match.params.id}`)
-            const newEdges = fetchedEdges.map(edge => {
-                return {
-                    from: edge.start,
-                    to: edge.end,
-                    label: edge.properties.type
-                }
-            })
-            const fetchedTypology = await fetchUrl(`http://localhost:5000/api/desks/${match.params.id}/properties/typology`)
-            setGraph({
-                nodes: newNodes,
-                edges: newEdges,
-                typology: fetchedTypology
-            })
+                setGraph(graphForVis)
+            }
             setLoading(false)
-        }
-        getGraph()
-    }, [match.params.id])
+        };
+    }, [match.params.uuid])
 
     const checkUserRights = () => {
-        try {
-            const fetchRights = async () => {
-                const response = await fetch(`http://localhost:5000/api/users/${currentUser.user.uuid}/rights`)
-                const data = await response.json()
-
-                if (!response.ok) {
-                    return console.log(data.error);
-                }
-
-                if (data.roles.find(role => role === 'Super')) return setAuthenticated(true)
-                if (data.desks && data.desks.find(desk =>  desk.deskID === parseInt(match.params.id))) return setAuthenticated(true)
-            }
-            if (!isEmpty(currentUser)) fetchRights()
-        } catch(error) {
-            console.log(error);
+        if (!isEmpty(currentUser)) {
+            setAuthenticated(true)
+        }
+        else {
+            setAuthenticated(false)
         }
     }
 
     useEffect(() => {
-        setAuthenticated(false)
+        checkUserRights()
     }, [currentUser])
 
     useEffect(() => {
         console.log('changed in desk.js');
     }, [graph])
-
-    checkUserRights()
 
     const changeGraph = (newGraph) => {
         setKey(uuid)
@@ -84,8 +87,6 @@ export default function Desk({ match }) {
     }
 
     const graphData = {
-        type: 'Доска',
-        deskID: match.params.id,
         graph,
         changeGraph
     }

@@ -20,54 +20,53 @@ export default function AddNodePopup(props) {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        let typeID
-        graphData.graph.typology.types.map((type) => {
-            if (type.properties.title === typeRef.current.value) {
-                typeID = type.properties.id
+        let chosenType
+        graphData.graph.types.map((type) => {
+            if (type.label === typeRef.current.value) {
+                chosenType = type
             }
             return type
         })
 
         try {
             const createNode = async () => {
-                const response = await fetch(`http://localhost:5000/api/nodes`, {
+                const response = await fetch(`/graph/nodes`, {
                     method: 'POST',
-                    headers: {
-                        'Content-type': 'application/json',
-                        'auth-token': 'Bearer ' + currentUser.accessToken
-                    },
                     body: JSON.stringify({
-                        desk: parseInt(graphData.deskID),
-                        type: typeID, /*typeRef.current.options[typeRef.current.options.selectedIndex].attributes[0].nodeValue*/
-                        properties: {
-                            title: nameRef.current.value
+                        title: nameRef.current.value,
+                        desk_uuid: graphData.graph.desk.uuid,
+                        type_uuid: chosenType.uuid,
+                        params: {
+                            community: chosenType.community
                         }
-                    })
+                    }),
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-type': 'application/json',
+                        'token': currentUser.access_token
+                    },
                 })
                 const data = await response.json()
-
                 if (!response.ok) {
-                    setError(data && data.error)
+                    setError(data && data.detail)
                     return setLoading(false)
                 } 
-                
-                const changedGraph = graphData.graph
-                changedGraph.nodes = [...graphData.graph.nodes, data]
-                graphData.changeGraph(changedGraph)
                 
                 setLoading(false)
             }
             setLoading(true)
             createNode()
         } catch(error) {
-
+            console.log(error)
+            setError(error.detail)
+            setLoading(false)
         }
     }
 
     const fillSelect = () => {
         if (loading) return <option key={0}>Загрузка типов...</option>
-        if (graphData.graph === undefined || graphData.graph.typology === undefined) return <option key={0}>Загрузка типов...</option>
-        return graphData.graph.typology.types.map((type) => <option key={type.properties.id} id={type.properties.id}>{type.properties.title}</option>)
+        if (graphData.graph === undefined || graphData.graph.types === undefined) return <option key={0}>Загрузка типов...</option>
+        return graphData.graph.types.map((type) => <option key={type.id} id={type.id}>{type.label}</option>)
     }
 
     return (
@@ -80,7 +79,7 @@ export default function AddNodePopup(props) {
             >
             <Modal.Header>
                 <Modal.Title id="contained-modal-title-vcenter">
-                    Добавить вершину {graphData.deskID}
+                    Добавить вершину
                 </Modal.Title>
                 {error && <Alert variant="danger">{error}</Alert>}
             </Modal.Header>
